@@ -26,6 +26,8 @@ namespace TreasureHunter.Models
       Boundary engine = new Boundary("Engine", "An interstellar spacecraft requires two different sorts of Space Engines, and although you quickly ascertain that both are currently inoperable, you're only worried about the Hyperspace Space Engine.\n\nIt's definitely fucked up.");
       Boundary dormitories = new Boundary("Dormitories", "Well, you knew it had to happen eventually. Upon entering the dorms, you find the last remaining member of the Voice's crew. He's a pretty surly fella, though, and doesn't take kindly to your presence.");
 
+
+
       recRoom.NeighborBoundaries.Add(bridge.Name, bridge);
       recRoom.NeighborBoundaries.Add(hangar.Name, hangar);
       bridge.NeighborBoundaries.Add(recRoom.Name, recRoom);
@@ -99,6 +101,11 @@ namespace TreasureHunter.Models
     {
       Console.Clear();
       Console.WriteLine($"{CurrentBoundary.Description}");
+      Console.WriteLine($"From the {CurrentBoundary.Name}, you can reach:");
+      foreach (KeyValuePair<string, IBoundary> kvp in CurrentBoundary.NeighborBoundaries)
+      {
+        Console.WriteLine(kvp.Key);
+      }
     }
     void ChangeLocation(string locationName)
     {
