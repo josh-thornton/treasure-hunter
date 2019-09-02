@@ -1,12 +1,17 @@
 ﻿using System;
+using TreasureHunter.Models;
+using TreasureHunter.Interfaces;
 
 namespace TreasureHunter
 {
-    class Program
+  class Program
+  {
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Hello World!");
-        }
+      Console.Clear();
+      App app = new App();
+      app.Setup();
+      app.Run();
     }
+  }
 }

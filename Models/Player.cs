@@ -3,13 +3,11 @@ using TreasureHunter.Interfaces;
 
 namespace TreasureHunter.Models
 {
-  public class Player
+  public class Player : IPlayer
   {
-    public string Name { get; set; }
     public List<IItem> Inventory { get; set; }
-    public Player(string name)
+    public Player()
     {
-      Name = name;
       Inventory = new List<IItem>();
     }
   }
