@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TreasureHunter.Models;
 
 namespace TreasureHunter.Interfaces
 {
