@@ -7,9 +7,10 @@ namespace TreasureHunter.Models
 {
   public class App : IApp
   {
+
     public IPlayer Player { get; set; }
     public IBoundary Location { get; set; }
-    public string reqItem { get; set; }
+    public string ReqItem { get; set; }
     public string CurrentLocation { get; set; }
     public List<IItem> Inventory { get; set; }
     public bool Exploring { get; set; }
@@ -57,7 +58,7 @@ namespace TreasureHunter.Models
 
       Inventory = new List<IItem>();
 
-      Hangar.Items.Add(Laser);
+      Labs.Items.Add(Laser);
       Bridge.Items.Add(Keycard);
       Maintenance.Items.Add(Tools);
 
@@ -118,12 +119,15 @@ namespace TreasureHunter.Models
     }
     public void DisplayRoomDescription()
     {
-      Console.Clear();
-      Console.WriteLine($"{Location.Description}");
-      Console.WriteLine($"From the {Location.Name}, you can reach:");
-      foreach (KeyValuePair<string, IBoundary> kvp in Location.NeighborBoundaries)
+      if (Exploring == true)
       {
-        Console.WriteLine(kvp.Key);
+        Console.Clear();
+        Console.WriteLine($"{Location.Description}");
+        Console.WriteLine($"From the {Location.Name}, you can reach:");
+        foreach (KeyValuePair<string, IBoundary> kvp in Location.NeighborBoundaries)
+        {
+          Console.WriteLine(kvp.Key);
+        }
       }
     }
     public void ReqItemCheck()
@@ -132,28 +136,38 @@ namespace TreasureHunter.Models
     }
     public void ChangeLocation(string locationName)
     {
-      IItem ReqItemCheck = Player.Inventory.Find(c => c.Name == Location.ReqItem);
-      if (Location.NeighborBoundaries.ContainsKey(locationName) && Player.Inventory.Contains(ReqItemCheck))
+      if (Location.NeighborBoundaries.ContainsKey(locationName))
       {
-        Location = Location.NeighborBoundaries[locationName];
-        DisplayRoomDescription();
-        if (Location.Name == "armory")
+        var location = Location.NeighborBoundaries[locationName];
+        if (Player.Inventory.Any(i => i.Name.ToLowerInvariant() == location.ReqItem.ToLowerInvariant()))
         {
-          Console.WriteLine("Game over.");
-          Exploring = false;
+          Location = Location.NeighborBoundaries[locationName];
+          if (Location.Name == "armory")
+          {
+            Console.WriteLine("The Space Airlock to the leading to the Armory is ringed with red; it looks like there has been heavy damage within. Luckily, your Space Suit is in good condition.\n\nUpon entering, it's apparent that a large Space Explosion ripped through the area; anything that was not strapped down (spoilers: That's everything) was whisked out into space through a large gash down the port side of the vessel. Turns out, you're not strapped down either. You quickly lose your footing and are taken off into the void, never to be seen again.");
+            Console.WriteLine("GAME OVER");
+            Exploring = false;
+          }
+          if (Location.Name == "engine")
+          {
+            Console.WriteLine("An interstellar spacecraft requires two different sorts of Space Engines, and although you quickly ascertain that both are currently inoperable, you're only worried about the Hyperspace Space Engine.");
+            Console.WriteLine("You do what you were trained to do, and the Space Rocker is (barely) operable again. Time to get home!");
+            Console.WriteLine("Congrats! You win.");
+            Exploring = false;
+          }
+          DisplayRoomDescription();
         }
-        if (Location.Name == "engine")
+        else
         {
-          Console.WriteLine("You do what you were trained to do, and the Space Rocker is (barely) operable again. Time to get home!");
-          Console.WriteLine("Congrats! You win");
-          Exploring = false;
+          Console.WriteLine("It looks like you're missing an item.");
         }
       }
       else
       {
-        Console.WriteLine("Invalid room choice. Are you missing an item?");
+        Console.WriteLine("Invalid room choice.");
       }
     }
+
     public void DisplayPlayerInventory()
     {
       Console.WriteLine("You are currently holding:");
