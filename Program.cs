@@ -1,6 +1,6 @@
 ﻿using System;
-using TreasureHunter.Models;
 using TreasureHunter.Interfaces;
+using TreasureHunter.Models;
 
 namespace TreasureHunter
 {
