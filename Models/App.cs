@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TreasureHunter.Interfaces;
 
 namespace TreasureHunter.Models
@@ -8,18 +9,21 @@ namespace TreasureHunter.Models
   {
     public IPlayer Player { get; set; }
     public IBoundary Location { get; set; }
-    public IBoundary CurrentBoundary { get; set; }
-    public Dictionary<string, IBoundary> NeighborBoundaries { get; set; }
-    public List<IItem> Items { get; set; }
     public List<IItem> Inventory { get; set; }
     public bool Exploring { get; set; }
+
     public void Greeting()
     {
       Console.WriteLine("The year is 20XX.\n\nA Space Vessel known as the Space Rocker, long thought vanished, has suddenly reappeared in Titan's orbit. You were once a Space Engineer for the Royal Space Army, but grew disillusioned with their constant drive to conquer all of space, because it turns out space is empty so it's pretty boring out there.\n\nAnyway, after leaving the Space Army you found your calling as a Space Scavenger. And buddy, you got a whole-ass Spaceship to scavenge.\n\nAs you approach the Rocker, it's quite apparent that the Space Engines aren't in order. Luckily, the hangar Space Bay is open, which makes landing inside quite easy. If you want to scavenge a whole-ass Spaceship, you had better get those Space Engines working!");
+      Console.WriteLine("Being the goofball you are, you normally choose a new name at the start of every salvage operation. At this point, you're not sure who the real you is. What'll it be this time?");
+      string name = Console.ReadLine();
+      Player.Name = name;
+      Console.WriteLine($"{Player.Name}, huh? Not your finest work, but it will do. Take a look around the hangar you find yourself in.");
     }
+
+
     public void Setup()
     {
-
       Boundary recRoom = new Boundary("RecRoom", "The entire bow of the Rocker is dedicated to keeping the minds of the crew engaged during long space voyages -- a huge window wraps around the Space Lounge at the front, providing a panoramic view of the world outside and comfortable Space Seating to enjoy it. An island Space Bar stands in the middle of the room, ringed with Space Viewing Screens. The port side of the room features several Space Pool Tables and other games, like Space Shuffleboard and Space Darts. The starbord side is taken up nearly completely by the Space Bumper Cars and virtual reality rooms.\n\nHumankind learned early on in our spacefaring days that a Good Time is the only way to avoid the Space Madness, and ever since even the most militant-minded vessel hasn't skimped on ways to provide the crew with one. As you have recently learned, not all of the horrors of the void can simply be washed away with Space Alcohol and virtual reality, however.\n\nThe rec room is nearly untouched; if it weren't for a few more broken bottles than normal, an obvserver who hasn't seen what you have would assume all is well. Perhaps the crew, even in the throes of their madness, remember this as being an area to enjoy.");
       Boundary bridge = new Boundary("Bridge", "The Space Bridge of the Rocker is in complete dissaray. It would be safe to assume that this is where whatever ailed these spacefarers took root here.\n\nSeveral bodies are strewn throughout the area. Light from the broken holodeck in the middle of the bridge intermittently lances out, coating the area in a ghoulish green. You spot the glint of a Keycard dangling off of the Space Captain's body during one of these bursts.");
       Boundary hangar = new Boundary("Hangar", "It doesn't take long to realize that the only ship in working order on the Rocker's bridge is the one you flew in on. It appears that one or two may be missing, and several others are heavily damaged and most show evidence of fire damage.\n\nOne, however, seems to be unburned and salvageable.");
@@ -35,32 +39,26 @@ namespace TreasureHunter.Models
       Item keycard = new Item("Space Laboratory Keycard", "A keycard for the labs, through which you can access much of the ship.");
       Item tools = new Item("Space Tools", "This should be everything an experienced Space Engineer such as yourself needs.");
 
-      recRoom.NeighborBoundaries.Add(bridge.Name, bridge);
-      recRoom.NeighborBoundaries.Add(hangar.Name, hangar);
-      bridge.NeighborBoundaries.Add(recRoom.Name, recRoom);
-      bridge.NeighborBoundaries.Add(hangar.Name, hangar);
-      hangar.NeighborBoundaries.Add(labs.Name, hangar);
-      hangar.NeighborBoundaries.Add(bridge.Name, bridge);
-      labs.NeighborBoundaries.Add(dormitories.Name, dormitories);
-      labs.NeighborBoundaries.Add(armory.Name, armory);
-      labs.NeighborBoundaries.Add(comms.Name, comms);
-      labs.NeighborBoundaries.Add(maintenance.Name, maintenance);
-      labs.NeighborBoundaries.Add(galley.Name, galley);
-      dormitories.NeighborBoundaries.Add(labs.Name, labs);
-      dormitories.NeighborBoundaries.Add(armory.Name, armory);
-      armory.NeighborBoundaries.Add(dormitories.Name, dormitories);
-      armory.NeighborBoundaries.Add(labs.Name, labs);
-      comms.NeighborBoundaries.Add(labs.Name, labs);
-      maintenance.NeighborBoundaries.Add(labs.Name, labs);
-      maintenance.NeighborBoundaries.Add(galley.Name, galley);
-      maintenance.NeighborBoundaries.Add(engine.Name, galley);
-      engine.NeighborBoundaries.Add(maintenance.Name, maintenance);
+      recRoom.AddNeighborBoundary(bridge, true);
+      recRoom.AddNeighborBoundary(hangar, true);
+      bridge.AddNeighborBoundary(hangar, true);
+      hangar.AddNeighborBoundary(labs, true);
+      labs.AddNeighborBoundary(dormitories, true);
+      labs.AddNeighborBoundary(armory, true);
+      labs.AddNeighborBoundary(comms, true);
+      labs.AddNeighborBoundary(maintenance, true);
+      labs.AddNeighborBoundary(galley, true);
+      dormitories.AddNeighborBoundary(armory, true);
+      maintenance.AddNeighborBoundary(galley, true);
+      maintenance.AddNeighborBoundary(engine, true);
 
       labs.Items.Add(laser);
       bridge.Items.Add(keycard);
       maintenance.Items.Add(tools);
 
-      CurrentBoundary = hangar;
+      Player = new Player("");
+      Player.Inventory.Clear();
+      Location = hangar;
       Exploring = true;
     }
     public void Run()
@@ -99,6 +97,9 @@ namespace TreasureHunter.Models
         case "search":
           TakeItem(option);
           break;
+        case "quit":
+          Exploring = false;
+          break;
         default:
           Console.WriteLine("Invalid entry");
           break;
@@ -107,29 +108,29 @@ namespace TreasureHunter.Models
     public void DisplayHelpInfo()
     {
       Console.Clear();
-      Console.WriteLine("While onboard the Space Rocker, you have a few different options:\n\nType 'look' to examine your surroundings and see where you can go next.\n\nType 'Search (object)' to rummage about and see what items you can find.\n\nType 'Enter (room)' to change locations.\n\nType 'inventory' to see what you're holding.\n\nPress any key to continue.");
+      Console.WriteLine("While onboard the Space Rocker, you have a few different options:\n\nType 'look' to examine your surroundings and see where you can go next.\n\nType 'Search (object)' to rummage about and see what items you can find.\n\nType 'Enter (room)' to change locations.\n\nType 'inventory' to see what you're holding.\n\nType 'quit' to abandon your journey.\n\nPress any key to continue.");
       Console.ReadLine();
     }
     public void DisplayRoomDescription()
     {
       Console.Clear();
-      Console.WriteLine($"{CurrentBoundary.Description}");
-      Console.WriteLine($"From the {CurrentBoundary.Name}, you can reach:");
-      foreach (KeyValuePair<string, IBoundary> kvp in CurrentBoundary.NeighborBoundaries)
+      Console.WriteLine($"{Location.Description}");
+      Console.WriteLine($"From the {Location.Name}, you can reach:");
+      foreach (KeyValuePair<string, IBoundary> kvp in Location.NeighborBoundaries)
       {
         Console.WriteLine(kvp.Key);
       }
     }
     public void ChangeLocation(string locationName)
     {
-      if (NeighborBoundaries.ContainsKey(locationName))
+      if (Location.NeighborBoundaries.ContainsKey(locationName))
       {
-        CurrentBoundary = NeighborBoundaries[locationName];
+        Location = Location.NeighborBoundaries[locationName];
+        DisplayRoomDescription();
       }
       else
       {
         Console.WriteLine("Invalid room choice.");
-        CaptureUserInput();
       }
     }
     public void DisplayPlayerInventory()
@@ -144,9 +145,9 @@ namespace TreasureHunter.Models
     }
     public void TakeItem(string itemName)
     {
-      //if (CurrentBoundary.Items.Contains(itemName))
+      // if (CurrentBoundary.Items.Contains(itemName))
       {
-        //Inventory.Add(itemName);
+        //  Inventory.Add(itemName);
       }
     }
   }
